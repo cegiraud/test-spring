@@ -59,18 +59,4 @@ public class FakeSSOResource {
         user.put("lastName", lastName);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(user.toString().getBytes());
     }
-
-    @Bean
-    CommandLineRunner init(UserRepository userRepository, AuthorityRepository authorityRepository, MongoClient mongoClient) {
-        return args -> {
-            Mono.from(mongoClient.getDatabase("initiatives").drop()).block();
-            User user = new User();
-            user.setUsername("Charles");
-            userRepository.save(user).block();
-            Authority authority = authorityRepository.save(new Authority(Authority.DEFAULT_AUTHORITY)).block();
-            user.getAuthorities().add(authority);
-            userRepository.save(user).block();
-        };
-
-    }
 }
