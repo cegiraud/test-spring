@@ -69,7 +69,7 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public Flux<Authority> findByAuthoritiesByUsername(String username) {
+    public Flux<Authority> findAuthoritiesByUsername(String username) {
         return userRepository.findByUsernameIgnoreCase(username)
                 .flatMapIterable(user -> {
                     LOGGER.debug("Searching authorities for user : {}", user);

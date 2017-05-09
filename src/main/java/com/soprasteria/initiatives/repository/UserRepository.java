@@ -21,9 +21,7 @@ public interface UserRepository extends GenericRepository<User> {
     @Override
     Mono<User> findById(String id);
 
-    Flux<User> findByAuthoritiesIn(Authority authority);
+    Flux<User> findByAuthorities(Authority authority);
 
     Mono<User> findByUsernameAndTemporaryCode(String username, String codeTemporaire);
-
-    Mono<Boolean> existsByUsername(String username);
 }

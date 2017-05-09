@@ -35,11 +35,7 @@ public class UserResource {
     public Mono<User> find(@PathVariable String userId) {
         return userService.findById(userId);
     }
-
-//    @PutMapping(ApiConstants.ACTIVATE)
-//    public void activate(String uuid) {
-//        userService.activate(uuid);
-//    }
+    
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping

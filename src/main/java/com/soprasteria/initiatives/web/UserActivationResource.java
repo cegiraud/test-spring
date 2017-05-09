@@ -33,10 +33,10 @@ public class UserActivationResource {
     }
 
     @GetMapping(ApiConstants.EXISTS)
-    public Mono<ResponseEntity> exists() {
+    public Mono<ResponseEntity<Object>> exists() {
         return userActivationService.exist()
-                .map(exist -> exist ? ResponseEntity.ok() : ResponseEntity.notFound())
-                .map(resp -> resp.build());
+                .map((Boolean exist) -> exist ? ResponseEntity.ok() : ResponseEntity.notFound())
+                .map(response -> response.build());
     }
 
 }

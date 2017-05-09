@@ -64,7 +64,7 @@ public class AuthorityService {
     @Transactional
     public Mono<Void> delete(String id) {
         return authorityRepository.findById(id).flatMap(
-                authority -> userRepository.findByAuthoritiesIn(authority)
+                authority -> userRepository.findByAuthorities(authority)
                         .flatMap(
                                 user -> {
                                     user.getAuthorities().remove(authority);
@@ -74,6 +74,12 @@ public class AuthorityService {
                         .doOnComplete(() -> authorityRepository.delete(authority))
                         .doOnComplete(() -> LOGGER.info("Deleting authority : {}", authority))
                         .then());
+    }
+
+    @Transactional
+    Mono<Authority> findDefaultOrCreate() {
+        return authorityRepository.findByNameIgnoreCase(Authority.DEFAULT_AUTHORITY)
+                .switchIfEmpty(create(new Authority(Authority.DEFAULT_AUTHORITY)));
     }
 
     private Mono<Void> checkNameAvailable(Authority authority) {

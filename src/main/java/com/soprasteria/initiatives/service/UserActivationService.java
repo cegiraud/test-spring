@@ -26,10 +26,13 @@ public class UserActivationService {
 
     private final UserRepository userRepository;
 
+    private final AuthorityService authorityService;
+
     private final JavaMailSender javaMailSender;
 
-    public UserActivationService(UserRepository userRepository, JavaMailSender javaMailSender) {
+    public UserActivationService(UserRepository userRepository, AuthorityService authorityService, JavaMailSender javaMailSender) {
         this.userRepository = userRepository;
+        this.authorityService = authorityService;
         this.javaMailSender = javaMailSender;
     }
 
@@ -49,10 +52,12 @@ public class UserActivationService {
             user.setFirstName(authenticatedUser.getFirstName());
             user.setLastName(authenticatedUser.getLastName());
             return userRepository.findByUsernameIgnoreCase(authenticatedUser.getUsername())
-                    .flatMap(u -> {
+                    .map(u -> {
                         user.setId(u.getId());
-                        return userRepository.save(user);
-                    }).then(sendMail(user));
+                        return user;
+                    })
+                    .then(userRepository.save(user))
+                    .then(sendMail(user));
         }
         return Mono.error(new IllegalStateException("Wrong principal type"));
     }
@@ -74,7 +79,8 @@ public class UserActivationService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication.getPrincipal() instanceof AuthenticatedUser) {
             AuthenticatedUser authenticatedUser = (AuthenticatedUser) authentication.getPrincipal();
-            return userRepository.existsByUsername(authenticatedUser.getUsername());
+            return userRepository.findByUsernameIgnoreCase(authenticatedUser.getUsername())
+                    .hasElement();
         }
         return Mono.error(new IllegalStateException("Wrong principal type"));
     }
@@ -86,13 +92,16 @@ public class UserActivationService {
             AuthenticatedUser authenticatedUser = (AuthenticatedUser) authentication.getPrincipal();
             String errorMsg = String.format("Unable to retrieve current user : {}", authenticatedUser.getUsername());
             return userRepository.findByUsernameAndTemporaryCode(authenticatedUser.getUsername(), uuid.toString())
-                    .map(user -> {
+                    .flatMap(user -> {
                         user.setTemporaryCode(null);
-                        return user;
+                        return authorityService.findDefaultOrCreate().map(authority -> {
+                            user.getAuthorities().add(authority);
+                            return user;
+                        });
                     })
+                    .switchIfEmpty(Mono.error(new MongoException(errorMsg)))
                     .flatMap(userRepository::save)
-                    .then()
-                    .switchIfEmpty(Mono.error(new MongoException(errorMsg)));
+                    .then();
         }
         return Mono.error(new IllegalStateException("Wrong principal type"));
     }

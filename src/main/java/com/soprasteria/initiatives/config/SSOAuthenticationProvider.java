@@ -71,7 +71,7 @@ public class SSOAuthenticationProvider implements AuthenticationProvider {
     }
 
     private List<GrantedAuthority> findGrantedAuthorities(String username) {
-        return userService.findByAuthoritiesByUsername(username)
+        return userService.findAuthoritiesByUsername(username)
                 .map(authority -> (GrantedAuthority)new SimpleGrantedAuthority(authority.getName()))
                 .collectList()
                 .block();
