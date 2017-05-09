@@ -96,35 +96,4 @@ public class AuthenticatedUser implements Principal {
                 .toString();
     }
 
-    /**
-     * General Spring Security configuration
-     *
-     * @author jntakpe
-     * @author cegiraud
-     */
-    @Configuration
-    @EnableWebSecurity
-    @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
-    public static class SecurityConfiguration extends WebSecurityConfigurerAdapter {
-
-        private static final String OAUTH_AUTHORIZE = "/oauth/authorize";
-
-        @Override
-        public void configure(HttpSecurity http) throws Exception {
-            http
-                    .sessionManagement()
-                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                    .and()
-                    .requestMatchers().antMatchers(OAUTH_AUTHORIZE)
-                    .and()
-                    .authorizeRequests()
-                    .antMatchers(OAUTH_AUTHORIZE).authenticated();
-        }
-
-        @Override
-        public void configure(WebSecurity web) throws Exception {
-            web.ignoring()
-                    .antMatchers(ApiConstants.FAKE_SSO);
-        }
-    }
 }
